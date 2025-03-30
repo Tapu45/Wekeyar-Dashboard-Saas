@@ -1,11 +1,12 @@
 import express from 'express';
 import { uploadMiddleware } from '../middleware';
 import { uploadExcelFile, getUploadHistory, getUploadStatus, deleteUploadHistory } from '../controllers/uploadController';
+import { authenticateUser } from '../authMiddleware';
 
 const router = express.Router();
 
 // Route for uploading large Excel files (processed in worker thread)
-router.post('/upload', (req, res, next) => {
+router.post('/upload', authenticateUser, (req, res, next) => {
   uploadMiddleware(req, res, (err) => {
     if (err) {
       console.error("Error during file upload:", err);
@@ -30,9 +31,8 @@ router.post('/upload', (req, res, next) => {
 //   });
 // }, processExcelFileSync);
 
-router.get('/upload/history', getUploadHistory);
-router.delete("/upload/history/:id?", deleteUploadHistory);
-
-router.get("/upload/status/:id", getUploadStatus);
+router.get('/upload/history', authenticateUser, getUploadHistory);
+router.delete('/upload/history/:id?', authenticateUser, deleteUploadHistory);
+router.get('/upload/status/:id', authenticateUser, getUploadStatus);
 
 export default router;

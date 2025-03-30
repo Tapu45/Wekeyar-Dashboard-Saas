@@ -45,14 +45,22 @@ const FileUpload: React.FC = () => {
   const fetchUploadHistory = async () => {
     setIsLoading(true);
     try {
-      const response = await api.get(API_ROUTES.UPLOAD_HISTORY);
-      // Make sure we're setting an array
+      const token = localStorage.getItem("token"); // Retrieve the token from localStorage
+      if (!token) {
+        throw new Error("No token found. Please log in.");
+      }
+  
+      const response = await api.get(API_ROUTES.UPLOAD_HISTORY, {
+        headers: {
+          Authorization: `Bearer ${token}`, // Include the token in the Authorization header
+        },
+      });
+  
       setUploadHistory(Array.isArray(response.data) ? response.data : []);
     } catch (err: any) {
       console.error("Error fetching upload history:", err);
       setError("Failed to fetch upload history");
-      // Ensure uploadHistory is still an array even on error
-      setUploadHistory([]);
+      setUploadHistory([]); // Ensure uploadHistory is still an array even on error
     } finally {
       setIsLoading(false);
     }
@@ -60,15 +68,29 @@ const FileUpload: React.FC = () => {
 
   const handleDeleteHistory = async (id: string | null) => {
     try {
+      const token = localStorage.getItem("token"); // Retrieve the token from localStorage
+      if (!token) {
+        throw new Error("No token found. Please log in.");
+      }
+  
       if (id) {
         // Delete a specific record
-        await api.delete(API_ROUTES.UPLOAD_HISTORY_DELETE.replace(":id?", id));
+        await api.delete(API_ROUTES.UPLOAD_HISTORY_DELETE.replace(":id?", id), {
+          headers: {
+            Authorization: `Bearer ${token}`, // Include the token in the Authorization header
+          },
+        });
         console.log(`Deleted upload history record with ID: ${id}`);
       } else {
         // Delete all records
-        await api.delete(API_ROUTES.UPLOAD_HISTORY_DELETE.replace(":id?", ""));
+        await api.delete(API_ROUTES.UPLOAD_HISTORY_DELETE.replace(":id?", ""), {
+          headers: {
+            Authorization: `Bearer ${token}`, // Include the token in the Authorization header
+          },
+        });
         console.log("Deleted all upload history records");
       }
+  
       fetchUploadHistory(); // Refresh the upload history after deletion
     } catch (err: any) {
       console.error("Error deleting upload history:", err);
@@ -88,24 +110,29 @@ const FileUpload: React.FC = () => {
       setError("Please select a file first");
       return;
     }
-
+  
     const formData = new FormData();
     formData.append("excelFile", file);
-
+  
     setIsUploading(true);
     setError(null);
     setUploadResult(null);
-
+  
     try {
+      const token = localStorage.getItem("token"); // Retrieve the token from localStorage
+      if (!token) {
+        throw new Error("No token found. Please log in.");
+      }
+  
       const response = await api.post(API_ROUTES.UPLOAD, formData, {
-        // Use the `api` instance and `API_ROUTES.UPLOAD`
         headers: {
           "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`, // Include the token in the Authorization header
         },
       });
-
+  
       setUploadResult(response.data);
-      fetchUploadHistory();
+      fetchUploadHistory(); // Refresh the upload history after a successful upload
     } catch (err: any) {
       console.error("Upload error:", err);
       setError(err.response?.data?.error || "An error occurred during upload");
