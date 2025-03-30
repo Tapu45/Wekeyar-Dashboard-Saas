@@ -12,6 +12,8 @@ model Customer {
   name      String
   phone     String   @unique
   address   String? // Optional address
+  tenantId  Int      // Foreign key to Tenant
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
   bills     Bill[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -23,6 +25,8 @@ model Store {
   address   String?
   phone     String?  // Add this field
   email     String?  // Add this field
+  tenantId  Int      // Foreign key to Tenant
+  tenant    Tenant   @relation(fields: [tenantId], references: [id]) // Relation to Tenant
   bills     Bill[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -33,6 +37,8 @@ model Bill {
   billNo       String        @unique
   customerId   Int
   storeId      Int
+  tenantId     Int      // Foreign key to Tenant
+  tenant       Tenant   @relation(fields: [tenantId], references: [id])
   date         DateTime      @default(now())
   netDiscount  Float
   netAmount    Float
@@ -65,10 +71,24 @@ model UploadHistory {
   id         Int      @id @default(autoincrement())
   fileName   String
   uploadDate DateTime @default(now())
+   tenantId     Int      // Foreign key to Tenant
+  tenant       Tenant   @relation(fields: [tenantId], references: [id])
   fileUrl    String?
   status     String
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
+}
+model Tenant {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  email     String   @unique
+  users     User[]
+  stores    Store[]
+  customers Customer[]
+  bills     Bill[]
+  uploadHistory UploadHistory[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model User {
@@ -79,6 +99,8 @@ model User {
   role      String   // e.g., "admin" or "report-access"
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+    tenantId  Int?     // Foreign key to Tenant
+  tenant    Tenant?  @relation(fields: [tenantId], references: [id])
   telecallingOrders    TelecallingOrder[]  
   handledCustomers       TelecallerHandledCustomer[]
 }

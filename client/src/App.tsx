@@ -20,6 +20,7 @@ import UserCreationPage from "./components/UserCreation";
 import Tellecalling from "./components/tellecalling";
 import TelecallingDashboard from "./components/TelecallingDashboard";
 import TelecallerRemarksOrders from "./components/TelecallerHistory";
+import Signup from "./components/Signup";
 
 const queryClient = new QueryClient();
 
@@ -30,6 +31,9 @@ const App: React.FC = () => {
       <Router>
         <Routes>
           <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
+
+          {/* Public routes */}
 
           {/* Protected routes nested under dashboard layout */}
           <Route

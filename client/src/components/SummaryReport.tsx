@@ -34,12 +34,21 @@ const SummaryReport: React.FC = () => {
   const { data: summaryData, isLoading, error, refetch } = useQuery<SummaryData>({
     queryKey: ["summary", appliedFilters.fromDate, appliedFilters.toDate],
     queryFn: async () => {
+      const token = localStorage.getItem("token"); // Retrieve the token from localStorage
+      if (!token) {
+        throw new Error("No token found");
+      }
+  
       const { data } = await api.get(API_ROUTES.SUMMARY, {
+        headers: {
+          Authorization: `Bearer ${token}`, // Include the token in the Authorization header
+        },
         params: { 
           fromDate: appliedFilters.fromDate, 
-          toDate: appliedFilters.toDate 
+          toDate: appliedFilters.toDate,
         },
       });
+  
       return data;
     },
   });

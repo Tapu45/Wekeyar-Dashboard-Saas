@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
-import { NonBuyingCustomer, MonthlyNonBuyingCustomer } from "src/types/types";
+import { NonBuyingCustomer, MonthlyNonBuyingCustomer, SummaryReport } from "src/types/types";
 import { subDays, subWeeks, subMonths } from "date-fns";
 
 export const prisma = new PrismaClient();
@@ -11,6 +11,15 @@ export const prisma = new PrismaClient();
 export const getSummary = async (req: Request, res: Response) => {
   try {
     const { fromDate, toDate, storeId } = req.query;
+    const admin = (req as any).user;
+    console.log("Admin User:", admin);
+    
+
+    // Ensure the user is authenticated and has a tenantId
+    if (!admin || !admin.tenantId) {
+      res.status(403).json({ error: "Unauthorized. Tenant ID is required." });
+      return;
+    }
 
     // Default date range: current month and previous month
     const today = new Date();
@@ -20,20 +29,43 @@ export const getSummary = async (req: Request, res: Response) => {
     const startDate = fromDate ? new Date(fromDate as string) : previousMonthStart;
     const endDate = toDate ? new Date(toDate as string) : previousMonthEnd;
 
-    // Total customers count
-    const totalCustomers = await prisma.customer.count();
-
-    // Fetch inactive customers (customers with no bills in the specified date range)
-    const inactiveCustomers = await prisma.customer.findMany({
+    // Total customers count for the tenant
+    const totalCustomers = await prisma.customer.count({
       where: {
         bills: {
-          none: {
-            date: {
-              gte: startDate,
-              lte: endDate,
+          some: {
+            store: {
+              tenantId: admin.tenantId, // Filter by tenantId
             },
           },
         },
+      },
+    });
+
+    // Fetch inactive customers for the tenant
+    const inactiveCustomers = await prisma.customer.findMany({
+      where: {
+        AND: [
+          {
+            bills: {
+              none: {
+                date: {
+                  gte: startDate,
+                  lte: endDate,
+                },
+              },
+            },
+          },
+          {
+            bills: {
+              some: {
+                store: {
+                  tenantId: admin.tenantId, // Filter by tenantId
+                },
+              },
+            },
+          },
+        ],
       },
       select: {
         id: true,
@@ -45,22 +77,12 @@ export const getSummary = async (req: Request, res: Response) => {
       },
     });
 
-    // Apply additional filtering to exclude customers whose last purchase date is after the `endDate`
-    const filteredInactiveCustomers = inactiveCustomers.filter((customer) => {
-      const lastPurchaseDate = customer.bills.length
-        ? new Date(customer.bills[0].date)
-        : null;
-
-      // Include customers with no purchase history or last purchase before `endDate`
-      return !lastPurchaseDate || lastPurchaseDate <= endDate;
-    });
-
-    const inactiveCustomerCount = filteredInactiveCustomers.length;
+    const inactiveCustomerCount = inactiveCustomers.length;
 
     // Calculate active customers by subtracting inactive customers from total customers
     const activeCustomerCount = totalCustomers - inactiveCustomerCount;
 
-    // Total revenue
+    // Total revenue for the tenant
     const totalRevenueData = await prisma.bill.aggregate({
       _sum: { netAmount: true },
       where: {
@@ -68,21 +90,24 @@ export const getSummary = async (req: Request, res: Response) => {
           gte: startDate,
           lte: endDate,
         },
+        store: {
+          tenantId: admin.tenantId, // Filter by tenantId
+        },
         ...(storeId ? { storeId: Number(storeId) } : {}),
       },
     });
 
+    const totalRevenue = totalRevenueData._sum?.netAmount || 0;
+
     // Calculate average monthly revenue
-    const avgMonthlyRevenue = totalRevenueData._sum.netAmount
-      ? totalRevenueData._sum.netAmount / 12
-      : 0;
+    const avgMonthlyRevenue = totalRevenue / 12;
 
     // Prepare the summary response
-    const summary = {
+    const summary: SummaryReport = {
       totalCustomers,
       activeCustomers: activeCustomerCount,
       inactiveCustomers: inactiveCustomerCount,
-      totalRevenue: totalRevenueData._sum.netAmount || 0,
+      totalRevenue,
       avgMonthlyRevenue,
     };
 

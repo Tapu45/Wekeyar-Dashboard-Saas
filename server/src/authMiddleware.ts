@@ -7,6 +7,7 @@ interface CustomUser {
   username: string;
   email: string;
   role: string;
+  tenantId: string; 
 }
 
 interface CustomRequest extends Request {
@@ -32,7 +33,11 @@ export const authenticateUser = (req: CustomRequest, res: Response, next: NextFu
       username: decoded.username,
       email: decoded.email,
       role: decoded.role,
+      tenantId: decoded.tenantId, // Include tenantId for multi-tenancy
     }; // Attach only the required fields
+
+    console.log("req.user",req.user.tenantId);
+    
 
     next();
   } catch (error) {

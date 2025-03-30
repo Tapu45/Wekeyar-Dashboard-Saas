@@ -45,12 +45,15 @@ async function processExcelFile() {
   
   let currentProgress = 0;
   try {
-    const { fileUrl } = workerData;
+    const { fileUrl, tenantId } = workerData;
+    console.log(`Processing file for tenantId: ${tenantId}`); 
     console.log(`Downloading file from Cloudinary: ${fileUrl}`);
+
+    if (!tenantId) {
+      throw new Error("Tenant ID is required to process the file.");
+    }
     
-    // Download file using streaming to reduce memory usage
-  
-    
+    // Download file using streaming to reduce memory usage  
     const response = await axios({
       method: 'get',
       url: fileUrl,
@@ -523,7 +526,8 @@ async function processExcelFile() {
           storeName: storeInfo.name,
           address: storeInfo.address,
           phone: storeInfo.phone,
-          email: storeInfo.email
+          email: storeInfo.email,
+          tenantId,
         },
       });
     });
@@ -561,7 +565,10 @@ async function processExcelFile() {
               const result = await tx.customer.upsert({
                 where: { phone: customer.phone },
                 update: { name: customer.name },
-                create: customer,
+                create: {
+                  ...customer,
+                  tenantId, // Associate the customer with the tenant
+                },
               });
               customerMap.set(customer.phone, result.id);
             }
@@ -580,7 +587,8 @@ async function processExcelFile() {
           where: {
             billNo: {
               in: validBillRecords.map(bill => bill.billNo)
-            }
+            },
+            tenantId,
           },
           select: { billNo: true }
         });
@@ -656,6 +664,7 @@ async function processExcelFile() {
                   creditAmount: creditAmount,
                   paymentType: creditAmount > 0 ? 'CREDIT' : 'CASH',
                   isUploaded: true,
+                  tenantId,
                 },
               });
               

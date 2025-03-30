@@ -7,22 +7,51 @@ exports.prisma = new client_1.PrismaClient();
 const getSummary = async (req, res) => {
     try {
         const { fromDate, toDate, storeId } = req.query;
+        const admin = req.user;
+        console.log("Admin User:", admin);
+        if (!admin || !admin.tenantId) {
+            res.status(403).json({ error: "Unauthorized. Tenant ID is required." });
+            return;
+        }
         const today = new Date();
         const previousMonthStart = new Date(today.getFullYear(), today.getMonth() - 1, 1);
         const previousMonthEnd = new Date(today.getFullYear(), today.getMonth(), 0, 23, 59, 59);
         const startDate = fromDate ? new Date(fromDate) : previousMonthStart;
         const endDate = toDate ? new Date(toDate) : previousMonthEnd;
-        const totalCustomers = await exports.prisma.customer.count();
-        const inactiveCustomers = await exports.prisma.customer.findMany({
+        const totalCustomers = await exports.prisma.customer.count({
             where: {
                 bills: {
-                    none: {
-                        date: {
-                            gte: startDate,
-                            lte: endDate,
+                    some: {
+                        store: {
+                            tenantId: admin.tenantId,
                         },
                     },
                 },
+            },
+        });
+        const inactiveCustomers = await exports.prisma.customer.findMany({
+            where: {
+                AND: [
+                    {
+                        bills: {
+                            none: {
+                                date: {
+                                    gte: startDate,
+                                    lte: endDate,
+                                },
+                            },
+                        },
+                    },
+                    {
+                        bills: {
+                            some: {
+                                store: {
+                                    tenantId: admin.tenantId,
+                                },
+                            },
+                        },
+                    },
+                ],
             },
             select: {
                 id: true,
@@ -33,13 +62,7 @@ const getSummary = async (req, res) => {
                 },
             },
         });
-        const filteredInactiveCustomers = inactiveCustomers.filter((customer) => {
-            const lastPurchaseDate = customer.bills.length
-                ? new Date(customer.bills[0].date)
-                : null;
-            return !lastPurchaseDate || lastPurchaseDate <= endDate;
-        });
-        const inactiveCustomerCount = filteredInactiveCustomers.length;
+        const inactiveCustomerCount = inactiveCustomers.length;
         const activeCustomerCount = totalCustomers - inactiveCustomerCount;
         const totalRevenueData = await exports.prisma.bill.aggregate({
             _sum: { netAmount: true },
@@ -48,17 +71,19 @@ const getSummary = async (req, res) => {
                     gte: startDate,
                     lte: endDate,
                 },
+                store: {
+                    tenantId: admin.tenantId,
+                },
                 ...(storeId ? { storeId: Number(storeId) } : {}),
             },
         });
-        const avgMonthlyRevenue = totalRevenueData._sum.netAmount
-            ? totalRevenueData._sum.netAmount / 12
-            : 0;
+        const totalRevenue = totalRevenueData._sum?.netAmount || 0;
+        const avgMonthlyRevenue = totalRevenue / 12;
         const summary = {
             totalCustomers,
             activeCustomers: activeCustomerCount,
             inactiveCustomers: inactiveCustomerCount,
-            totalRevenue: totalRevenueData._sum.netAmount || 0,
+            totalRevenue,
             avgMonthlyRevenue,
         };
         res.json(summary);

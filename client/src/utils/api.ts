@@ -26,6 +26,7 @@ export const API_ROUTES = {
     UPLOAD_STATUS: "/api/upload/status/:id",
     UPLOAD_HISTORY_DELETE: "/api/upload/history/:id?",
     LOGIN: "/auth/login",
+    SIGNUP_ORGANIZATION: "/auth/signup-organization",
     LOGOUT: "/auth/logout",
     CHECK_AUTH: "/auth/check-auth",
     CREATE_USER: "/user/create-user",

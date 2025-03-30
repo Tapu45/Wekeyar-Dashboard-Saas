@@ -11,8 +11,10 @@ import {
   getInactiveCustomers,
   getBillDetailsByBillNo,
 } from "../controllers/reportController";
+import { authenticateUser } from "../authMiddleware";
 
-router.get("/summary", getSummary);
+
+router.get("/summary",authenticateUser,getSummary);
 router.get("/non-buying-customers", getNonBuyingCustomers);
 router.get("/non-buying-monthly-customers", getNonBuyingMonthlyCustomers);
 router.get("/customer-report", getCustomerReport);

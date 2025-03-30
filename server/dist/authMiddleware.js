@@ -21,7 +21,9 @@ const authenticateUser = (req, res, next) => {
             username: decoded.username,
             email: decoded.email,
             role: decoded.role,
+            tenantId: decoded.tenantId,
         };
+        console.log("req.user", req.user.tenantId);
         next();
     }
     catch (error) {

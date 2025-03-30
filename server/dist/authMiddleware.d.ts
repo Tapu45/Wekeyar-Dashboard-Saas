@@ -4,6 +4,7 @@ interface CustomUser {
     username: string;
     email: string;
     role: string;
+    tenantId: string;
 }
 interface CustomRequest extends Request {
     user?: CustomUser;

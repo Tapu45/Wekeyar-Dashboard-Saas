@@ -15,6 +15,7 @@ export interface SummaryReport {
     phone: string;
     lastPurchaseDate: Date | null;
     totalPurchaseValue: number;
+    
   }
   
   export interface MonthlyNonBuyingCustomer {

@@ -6,5 +6,6 @@ const authController_1 = require("../controllers/authController");
 router.post("/login", authController_1.login);
 router.get("/logout", authController_1.logout);
 router.get("/check-auth", authController_1.checkAuth);
+router.post("/signup-organization", authController_1.signupOrganization);
 exports.default = router;
 //# sourceMappingURL=authRoutes.js.map
