@@ -7,10 +7,10 @@ interface CustomUser {
   username: string;
   email: string;
   role: string;
-  tenantId: string; 
+  tenantId: number; 
 }
 
-interface CustomRequest extends Request {
+export interface CustomRequest extends Request {
   user?: CustomUser;
 }
 
@@ -25,7 +25,7 @@ export const authenticateUser = (req: CustomRequest, res: Response, next: NextFu
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as CustomUser;
-  console.log("decoded",decoded);
+  
   
 
     req.user = {
@@ -36,7 +36,7 @@ export const authenticateUser = (req: CustomRequest, res: Response, next: NextFu
       tenantId: decoded.tenantId, // Include tenantId for multi-tenancy
     }; // Attach only the required fields
 
-    console.log("req.user",req.user.tenantId);
+    
     
 
     next();

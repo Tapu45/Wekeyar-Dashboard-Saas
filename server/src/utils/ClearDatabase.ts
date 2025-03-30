@@ -7,17 +7,18 @@ async function clearDatabase() {
     console.log('Clearing database...');
 
     // Delete records from dependent tables first
-    await prisma.billDetails.deleteMany(); // Clear bill details
-    await prisma.bill.deleteMany(); // Clear bills
     await prisma.telecallingOrderDetails.deleteMany(); // Clear telecalling order details
     await prisma.telecallingOrder.deleteMany(); // Clear telecalling orders
     await prisma.telecallerHandledCustomer.deleteMany(); // Clear telecaller handled customers
     await prisma.telecallingCustomer.deleteMany(); // Clear telecalling customers
+    await prisma.billDetails.deleteMany(); // Clear bill details
+    await prisma.bill.deleteMany(); // Clear bills
     await prisma.uploadHistory.deleteMany(); // Clear upload history
     await prisma.customer.deleteMany(); // Clear customers
     await prisma.store.deleteMany(); // Clear stores
     await prisma.product.deleteMany(); // Clear products
     await prisma.user.deleteMany(); // Clear users
+    await prisma.tenant.deleteMany(); // Clear tenants
 
     console.log('Database cleared successfully.');
   } catch (error) {

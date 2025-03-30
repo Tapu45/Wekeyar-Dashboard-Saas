@@ -20,7 +20,15 @@ interface InactiveCustomerListProps {
 const fetchInactiveCustomers = async ({ queryKey }: { queryKey: any }): Promise<InactiveCustomer[]> => {
   const [, fromDate, toDate] = queryKey; // Extract fromDate and toDate from the query key
 
+  const token = localStorage.getItem("token"); // Retrieve the token from localStorage
+  if (!token) {
+    throw new Error("No token found");
+  }
+
   const { data } = await api.get(API_ROUTES.INACTIVE_CUSTOMERS, {
+    headers: {
+      Authorization: `Bearer ${token}`, // Include the token in the Authorization header
+    },
     params: { fromDate, toDate },
   });
 

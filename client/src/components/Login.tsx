@@ -20,7 +20,7 @@ const Login: React.FC = () => {
         // Save the token in localStorage
         localStorage.setItem("token", response.data.token);
         // Redirect to home page after successful login
-        navigate("/");
+        navigate("/dashboard");
       }
     } catch (err: any) {
       setError(err.response?.data?.error || "Login failed, please try again.");

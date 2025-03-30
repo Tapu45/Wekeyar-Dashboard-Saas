@@ -19,7 +19,6 @@ const login = async (req, res) => {
             res.status(401).json({ error: "Invalid username or password" });
             return;
         }
-        console.log("User found:", user);
         const token = jsonwebtoken_1.default.sign({
             id: user.id,
             username: user.username,
@@ -73,7 +72,7 @@ const checkAuth = (req, res) => {
 };
 exports.checkAuth = checkAuth;
 const signupOrganization = async (req, res) => {
-    const { organizationName, email, username, password } = req.body;
+    const { organizationName, email, username, password, logo, employeeSize, numberOfStores, mainOfficeAddress, } = req.body;
     try {
         const existingTenant = await prisma.tenant.findUnique({ where: { email } });
         if (existingTenant) {
@@ -86,10 +85,14 @@ const signupOrganization = async (req, res) => {
             return;
         }
         const hashedPassword = await bcrypt_1.default.hash(password, 10);
-        const tenant = await prisma.tenant.create({
+        await prisma.tenant.create({
             data: {
                 name: organizationName,
                 email,
+                logo,
+                employeeSize,
+                numberOfStores,
+                mainOfficeAddress,
                 users: {
                     create: {
                         username,
@@ -100,7 +103,15 @@ const signupOrganization = async (req, res) => {
                 },
             },
         });
-        res.status(201).json({ message: "Organization created successfully", tenant });
+        const user = await prisma.user.findUnique({ where: { username } });
+        const token = jsonwebtoken_1.default.sign({
+            id: user?.id,
+            username: user?.username,
+            email: user?.email,
+            role: user?.role,
+            tenantId: user?.tenantId,
+        }, JWT_SECRET, { expiresIn: "7d" });
+        res.status(201).json({ message: "Organization created successfully", token });
     }
     catch (err) {
         console.error(err);

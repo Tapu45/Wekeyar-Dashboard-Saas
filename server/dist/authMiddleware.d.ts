@@ -4,9 +4,9 @@ interface CustomUser {
     username: string;
     email: string;
     role: string;
-    tenantId: string;
+    tenantId: number;
 }
-interface CustomRequest extends Request {
+export interface CustomRequest extends Request {
     user?: CustomUser;
 }
 export declare const authenticateUser: (req: CustomRequest, res: Response, next: NextFunction) => void;

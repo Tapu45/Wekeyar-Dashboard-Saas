@@ -21,6 +21,7 @@ import Tellecalling from "./components/tellecalling";
 import TelecallingDashboard from "./components/TelecallingDashboard";
 import TelecallerRemarksOrders from "./components/TelecallerHistory";
 import Signup from "./components/Signup";
+import HomePage from "./components/Homepage";
 
 const queryClient = new QueryClient();
 
@@ -30,6 +31,7 @@ const App: React.FC = () => {
     <QueryClientProvider client={queryClient}>
       <Router>
         <Routes>
+          <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
 
@@ -37,7 +39,7 @@ const App: React.FC = () => {
 
           {/* Protected routes nested under dashboard layout */}
           <Route
-            path="/"
+            path="/dashboard"
             element={
               <ProtectedRoute allowedRoles={["admin", "tellecaller"]}>
                 <DashboardLayout />
@@ -169,9 +171,9 @@ const RoleBasedRedirect: React.FC = () => {
   try {
     const decoded: { role: string } = JSON.parse(atob(token.split(".")[1]));
     if (decoded.role === "admin") {
-      return <Navigate to="/summary-report" replace />;
+      return <Navigate to="/dashboard/summary-report" replace />;
     } else if (decoded.role === "tellecaller") {
-      return <Navigate to="/tellecalling" replace />;
+      return <Navigate to="/dashboard/tellecalling" replace />;
     }
   } catch (error) {
     console.error("Failed to decode token:", error);

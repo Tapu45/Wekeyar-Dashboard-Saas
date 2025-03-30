@@ -82,6 +82,10 @@ model Tenant {
   id        Int      @id @default(autoincrement())
   name      String   @unique
   email     String   @unique
+  logo             String?  // URL of the uploaded logo
+  employeeSize     String?  // Fixed value or range (e.g., "1-10", "11-50")
+  numberOfStores   Int?     // Number of stores
+  mainOfficeAddress String? // Main office address
   users     User[]
   stores    Store[]
   customers Customer[]

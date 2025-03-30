@@ -1,7 +1,5 @@
 import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
-import api, { API_ROUTES } from "../utils/api";
 
 const ProtectedRoute: React.FC<{
   children: React.ReactNode;
@@ -10,29 +8,36 @@ const ProtectedRoute: React.FC<{
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
 
-  const { data, isLoading, error } = useQuery({
-    queryKey: ["checkAuth"],
-    queryFn: async () => {
-      const response = await api.get(API_ROUTES.CHECK_AUTH, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      return response.data;
-    },
-    retry: false,
-    enabled: !!token,
-  });
-
   useEffect(() => {
-    if (
-      !token ||
-      (!isLoading &&
-        (error || !data?.authenticated || !allowedRoles.includes(data.role)))
-    ) {
-      navigate("/login");
+  
+    if (!token) {
+      console.error("No token found in localStorage.");
+      navigate("/login"); // Redirect to login if no token is found
+      return;
     }
-  }, [isLoading, data, error, navigate, token, allowedRoles]);
 
-  if (isLoading) return <div>Loading...</div>;
+    try {
+      const tokenParts = token.split(".");
+      if (tokenParts.length !== 3) {
+        throw new Error("Invalid token format.");
+      }
+
+      const decoded = JSON.parse(atob(tokenParts[1])); // Decode the payload
+     
+
+      if (!allowedRoles.includes(decoded.role)) {
+        console.error("User role not allowed:", decoded.role);
+        navigate("/login"); // Redirect if the user's role is not allowed
+      }
+    } catch (error) {
+      console.error("Failed to decode token:", error);
+      navigate("/login"); // Redirect if token decoding fails
+    }
+  }, [navigate, token, allowedRoles]);
+
+  if (!token) {
+    return null; // Prevent rendering until validation is complete
+  }
 
   return <>{children}</>;
 };

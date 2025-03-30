@@ -13,7 +13,18 @@ export interface NonBuyingCustomer {
 }
 
 const getNonBuyingCustomers = async (days: number): Promise<NonBuyingCustomer[]> => {
-  const { data } = await api.get(API_ROUTES.NON_BUYING_CUSTOMERS, { params: { days } });
+  const token = localStorage.getItem("token"); // Retrieve the token from localStorage
+  if (!token) {
+    throw new Error("No token found");
+  }
+
+  const { data } = await api.get(API_ROUTES.NON_BUYING_CUSTOMERS, {
+    headers: {
+      Authorization: `Bearer ${token}`, // Include the token in the Authorization header
+    },
+    params: { days },
+  });
+
   return data;
 };
 

@@ -23,9 +23,6 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    console.log("User found:", user);
-    
-
     // Generate a token with user details
     const token = jwt.sign(
       {
@@ -84,31 +81,41 @@ export const checkAuth = (req: Request, res: Response) => {
 };
 
 export const signupOrganization = async (req: Request, res: Response): Promise<void> => {
-  const { organizationName, email, username, password } = req.body;
+  const {
+    organizationName,
+    email,
+    username,
+    password,
+    logo, // URL of the uploaded logo
+    employeeSize,
+    numberOfStores,
+    mainOfficeAddress,
+  } = req.body;
 
   try {
-    // Check if the organization or email already exists
     const existingTenant = await prisma.tenant.findUnique({ where: { email } });
     if (existingTenant) {
       res.status(400).json({ error: "Organization with this email already exists." });
       return;
     }
 
-    // Check if the username already exists
     const existingUser = await prisma.user.findUnique({ where: { username } });
     if (existingUser) {
       res.status(400).json({ error: "Username already exists." });
       return;
     }
 
-    // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create the tenant and admin user
-    const tenant = await prisma.tenant.create({
+    // Create the tenant and associated admin user
+    await prisma.tenant.create({
       data: {
         name: organizationName,
         email,
+        logo, // Save the logo URL
+        employeeSize,
+        numberOfStores,
+        mainOfficeAddress,
         users: {
           create: {
             username,
@@ -120,7 +127,23 @@ export const signupOrganization = async (req: Request, res: Response): Promise<v
       },
     });
 
-    res.status(201).json({ message: "Organization created successfully", tenant });
+    // Fetch the newly created user
+    const user = await prisma.user.findUnique({ where: { username } });
+
+    // Generate a JWT token
+    const token = jwt.sign(
+      {
+        id: user?.id,
+        username: user?.username,
+        email: user?.email,
+        role: user?.role,
+        tenantId: user?.tenantId,
+      },
+      JWT_SECRET,
+      { expiresIn: "7d" }
+    );
+
+    res.status(201).json({ message: "Organization created successfully", token });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Internal server error" });

@@ -6,7 +6,15 @@ import { CustomerReportData, MedicineDetails } from "../utils/types";
 import { ChevronDown, ChevronUp, Calendar, Search, ShoppingBag, CreditCard, User, Phone, Receipt, Clock } from "lucide-react";
 
 const fetchCustomerReport = async (startDate: string, endDate: string, search?: string): Promise<CustomerReportData[]> => {
+  const token = localStorage.getItem("token"); // Retrieve the token from localStorage
+  if (!token) {
+    throw new Error("No token found");
+  }
+
   const { data } = await api.get(API_ROUTES.CUSTOMER_REPORT, {
+    headers: {
+      Authorization: `Bearer ${token}`, // Include the token in the Authorization header
+    },
     params: { startDate, endDate, search },
   });
   return data;

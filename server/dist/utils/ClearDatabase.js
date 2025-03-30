@@ -5,17 +5,18 @@ const prisma = new client_1.PrismaClient();
 async function clearDatabase() {
     try {
         console.log('Clearing database...');
-        await prisma.billDetails.deleteMany();
-        await prisma.bill.deleteMany();
         await prisma.telecallingOrderDetails.deleteMany();
         await prisma.telecallingOrder.deleteMany();
         await prisma.telecallerHandledCustomer.deleteMany();
         await prisma.telecallingCustomer.deleteMany();
+        await prisma.billDetails.deleteMany();
+        await prisma.bill.deleteMany();
         await prisma.uploadHistory.deleteMany();
         await prisma.customer.deleteMany();
         await prisma.store.deleteMany();
         await prisma.product.deleteMany();
         await prisma.user.deleteMany();
+        await prisma.tenant.deleteMany();
         console.log('Database cleared successfully.');
     }
     catch (error) {

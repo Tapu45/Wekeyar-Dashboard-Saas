@@ -8,7 +8,6 @@ const getSummary = async (req, res) => {
     try {
         const { fromDate, toDate, storeId } = req.query;
         const admin = req.user;
-        console.log("Admin User:", admin);
         if (!admin || !admin.tenantId) {
             res.status(403).json({ error: "Unauthorized. Tenant ID is required." });
             return;
@@ -97,10 +96,16 @@ exports.getSummary = getSummary;
 const getNonBuyingCustomers = async (req, res) => {
     try {
         const { region, storeId, customerType, days = 90 } = req.query;
+        const admin = req.user;
+        if (!admin || !admin.tenantId) {
+            res.status(403).json({ error: "Unauthorized. Tenant ID is required." });
+            return;
+        }
         const cutoffDate = new Date();
         cutoffDate.setDate(cutoffDate.getDate() - Number(days));
         const customers = await exports.prisma.customer.findMany({
             where: {
+                tenantId: admin.tenantId,
                 bills: { none: { date: { gte: cutoffDate } } },
                 ...(storeId ? { bills: { some: { storeId: Number(storeId) } } } : {}),
                 ...(region ? { address: { contains: region } } : {}),
@@ -134,12 +139,18 @@ const getNonBuyingCustomers = async (req, res) => {
     }
 };
 exports.getNonBuyingCustomers = getNonBuyingCustomers;
-const getNonBuyingMonthlyCustomers = async (_req, res) => {
+const getNonBuyingMonthlyCustomers = async (req, res) => {
     try {
+        const admin = req.user;
+        if (!admin || !admin.tenantId) {
+            res.status(403).json({ error: "Unauthorized. Tenant ID is required." });
+            return;
+        }
         const currentDate = new Date();
         const currentMonthStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
         const customers = await exports.prisma.customer.findMany({
             where: {
+                tenantId: admin.tenantId,
                 bills: {
                     none: { date: { gte: currentMonthStart } },
                 },
@@ -175,9 +186,16 @@ exports.getNonBuyingMonthlyCustomers = getNonBuyingMonthlyCustomers;
 const getCustomerReport = async (req, res) => {
     try {
         const { startDate, endDate, storeId, search } = req.query;
+        const admin = req.user;
+        if (!admin || !admin.tenantId) {
+            res.status(403).json({ error: "Unauthorized. Tenant ID is required." });
+            return;
+        }
         const start = startDate ? new Date(startDate) : undefined;
         const end = endDate ? new Date(endDate) : undefined;
-        const whereCondition = {};
+        const whereCondition = {
+            tenantId: admin.tenantId,
+        };
         if (start && end) {
             whereCondition.date = {
                 gte: start,
@@ -244,6 +262,11 @@ exports.getCustomerReport = getCustomerReport;
 const getStoreWiseSalesReport = async (req, res) => {
     try {
         const { date, searchQuery } = req.query;
+        const admin = req.user;
+        if (!admin || !admin.tenantId) {
+            res.status(403).json({ error: "Unauthorized. Tenant ID is required." });
+            return;
+        }
         const selectedDate = date ? new Date(date) : new Date();
         const previousDay = (0, date_fns_1.subDays)(selectedDate, 1);
         const previousWeek = (0, date_fns_1.subWeeks)(selectedDate, 1);
@@ -252,6 +275,7 @@ const getStoreWiseSalesReport = async (req, res) => {
         const currentMonthEnd = new Date(selectedDate.getFullYear(), selectedDate.getMonth() + 1, 0, 23, 59, 59);
         const stores = await exports.prisma.store.findMany({
             where: {
+                tenantId: admin.tenantId,
                 OR: searchQuery
                     ? [
                         { storeName: { contains: searchQuery, mode: "insensitive" } },
@@ -264,6 +288,7 @@ const getStoreWiseSalesReport = async (req, res) => {
             const sales = await exports.prisma.bill.findMany({
                 where: {
                     storeId,
+                    tenantId: admin.tenantId,
                     date: {
                         gte: startDate,
                         lte: endDate,
@@ -371,6 +396,11 @@ exports.getAllCustomers = getAllCustomers;
 const getInactiveCustomers = async (req, res) => {
     try {
         const { fromDate, toDate } = req.query;
+        const admin = req.user;
+        if (!admin || !admin.tenantId) {
+            res.status(403).json({ error: "Unauthorized. Tenant ID is required." });
+            return;
+        }
         const today = new Date();
         const defaultFromDate = new Date(today.getFullYear(), today.getMonth() - 1, 1);
         const defaultToDate = new Date(today.getFullYear(), today.getMonth(), 0, 23, 59, 59);
@@ -378,6 +408,7 @@ const getInactiveCustomers = async (req, res) => {
         const endDate = toDate ? new Date(toDate) : defaultToDate;
         const customers = await exports.prisma.customer.findMany({
             where: {
+                tenantId: admin.tenantId,
                 bills: {
                     none: {
                         date: {

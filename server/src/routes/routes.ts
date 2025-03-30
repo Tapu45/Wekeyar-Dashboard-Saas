@@ -15,12 +15,12 @@ import { authenticateUser } from "../authMiddleware";
 
 
 router.get("/summary",authenticateUser,getSummary);
-router.get("/non-buying-customers", getNonBuyingCustomers);
-router.get("/non-buying-monthly-customers", getNonBuyingMonthlyCustomers);
-router.get("/customer-report", getCustomerReport);
-router.get("/store-sales-report", getStoreWiseSalesReport);
+router.get("/non-buying-customers",authenticateUser, getNonBuyingCustomers);
+router.get("/non-buying-monthly-customers",authenticateUser, getNonBuyingMonthlyCustomers);
+router.get("/customer-report",authenticateUser, getCustomerReport);
+router.get("/store-sales-report",authenticateUser, getStoreWiseSalesReport);
 router.get("/customers", getAllCustomers);
-router.get("/inactive-customers", getInactiveCustomers);
+router.get("/inactive-customers",authenticateUser, getInactiveCustomers);
 router.get("/bills/:billNo", getBillDetailsByBillNo);
 
 export default router;

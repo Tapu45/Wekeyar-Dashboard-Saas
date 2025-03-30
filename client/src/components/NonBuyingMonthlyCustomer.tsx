@@ -33,9 +33,19 @@ export interface MonthlyNonBuyingCustomer {
 }
 
 const getMonthlyNonBuyingCustomers = async (): Promise<MonthlyNonBuyingCustomer[]> => {
-  const { data } = await api.get(API_ROUTES.NON_BUYING_CUSTOMERS)
-  return data
-}
+  const token = localStorage.getItem("token"); // Retrieve the token from localStorage
+  if (!token) {
+    throw new Error("No token found");
+  }
+
+  const { data } = await api.get(API_ROUTES.NON_BUYING_MONTHLY_CUSTOMERS, {
+    headers: {
+      Authorization: `Bearer ${token}`, // Include the token in the Authorization header
+    },
+  });
+
+  return data;
+}; 
 
 const NonBuyingMonthlyCustomer: React.FC = () => {
   const [sorting, setSorting] = React.useState<SortingState>([])

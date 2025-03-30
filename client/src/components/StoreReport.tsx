@@ -5,7 +5,15 @@ import { StoreWiseSalesReport, StoreReport } from "../utils/types";
 import { motion } from "framer-motion";
 
 const fetchStoreWiseSalesReport = async (date: string, searchQuery: string): Promise<StoreWiseSalesReport> => {
+  const token = localStorage.getItem("token"); // Retrieve the token from localStorage
+  if (!token) {
+    throw new Error("No token found");
+  }
+
   const { data } = await api.get<StoreWiseSalesReport>(API_ROUTES.STORE_SALES_REPORT, {
+    headers: {
+      Authorization: `Bearer ${token}`, // Include the token in the Authorization header
+    },
     params: { date, searchQuery },
   });
   return data;
