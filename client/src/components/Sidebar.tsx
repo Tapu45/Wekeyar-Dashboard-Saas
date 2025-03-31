@@ -66,31 +66,31 @@ const Sidebar = ({
 
   // Define the links with role-based access
   const links: SidebarLink[] = [
-    { title: "Summary Report", path: "/", icon: LayoutDashboard, roles: ["admin"] },
+    { title: "Summary Report", path: "/dashboard/summary-report", icon: LayoutDashboard, roles: ["admin"] },
     {
       title: "Non-Buying Customers",
-      path: "/non-buying-customers",
+      path: "/dashboard/non-buying-customers",
       icon: User,
       roles: ["admin"],
     },
     {
       title: "Monthly Non-Buying",
-      path: "/non-buying-monthly-customers",
+      path: "/dashboard/non-buying-monthly-customers",
       icon: ClipboardList,
       roles: ["admin"],
     },
     {
       title: "Order History",
-      path: "/telecaller-remarks-orders",
+      path: "/dashboard/telecaller-remarks-orders",
       icon: ClipboardList,
       roles: ["tellecaller"],
     },
-    { title: "Customer Report", path: "/customer-report", icon: BarChart3, roles: ["admin"] },
-    { title: "Store Sales Report", path: "/store-sales-report", icon: Store, roles: ["admin"] },
-    { title: "Upload", path: "/upload", icon: UploadCloud, roles: ["admin"] },
-    { title: "User Creation", path: "/user", icon: User, roles: ["admin"] },
-    { title: "Tellecalling", path: "/tellecalling", icon: User, roles: ["tellecaller"] },
-    { title: "Tellecaller", path: "/telecalling-dashboard", icon: Headset, roles: ["admin"] },
+    { title: "Customer Report", path: "/dashboard/customer-report", icon: BarChart3, roles: ["admin"] },
+    { title: "Store Sales Report", path: "/dashboard/store-sales-report", icon: Store, roles: ["admin"] },
+    { title: "Upload", path: "/dashboard/upload", icon: UploadCloud, roles: ["admin"] },
+    { title: "User Creation", path: "/dashboard/user", icon: User, roles: ["admin"] },
+    { title: "Tellecalling", path: "/dashboard/tellecalling", icon: User, roles: ["tellecaller"] },
+    { title: "Tellecaller", path: "/dashboard/telecalling-dashboard", icon: Headset, roles: ["admin"] },
   ];
 
   // Filter links based on the user's role

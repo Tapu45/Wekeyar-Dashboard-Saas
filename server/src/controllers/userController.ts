@@ -40,7 +40,7 @@ export const createUser = async (req: Request, res: Response): Promise<void> => 
   }
 };
 
-export const getOrganizationDetails = async (req: CustomRequest, res: Response): Promise<void> => {
+ export const getOrganizationDetails = async (req: CustomRequest, res: Response): Promise<void> => {
   const { tenantId } = req.user!; // Use the extended `user` property
 
   try {
